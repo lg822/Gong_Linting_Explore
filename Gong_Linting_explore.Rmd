@@ -1,0 +1,75 @@
+---
+title: "Gong_Linting_explore"
+author: "Linting Gong"
+date: "Thursday, October 27, 2016"
+output: html_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+# Define function: explore 
+# Input: dataframe,
+#        plotswitch, off, on, or grid
+#        threshold,
+#       option vector  
+# Output:
+explore <- function (df, ps, th, ov){
+    # df -- data frame
+    # ps -- plot switch
+    # th -- threshold
+    # ov -- option vector
+
+    x=list()  # Initialize the return list
+    #use for else loop to distinguish the numerical and  categorical or logical columns 
+    for (i in names(df)){ # loop over all columns
+        if (is.numeric(df[[i]])){ # a numeric column
+            x[[length(x)+1]] <- summary(df[[i]]) # get summary statistics table
+        } else { 
+            x[[length(x)+1]] <- table(df[[i]]) # get frequency table(categorical and logical columns)
+        }
+    }
+    pairs <- c(); #contains pair of column names
+    cors <- c();  #contains correlation coefficients
+    n <- names(df) #store the names of columns 
+    for (i in c(1:(length(n)-1))){
+        ni <- n[[i]] # name of i-th column
+        if (is.numeric(df[[ni]])){
+            for (j in c((i+1): length(n))){
+                nj <- n[[j]] # name of j-th column
+                if (is.numeric(df[[nj]])){
+                    cij <- cor(df[[ni]], df[[nj]]) # compute correlation coefficient
+                    if (abs(cij) > th) # compare cij with the correlation threshold(use the abs()function in here to compare)
+                    {
+                        pairs[[length(pairs)+1]] <- paste(ni, nj, sep='-') #save column names
+                        cors[[length(cors)+1]] <- cij # save cij
+                    }
+                }
+            }
+        }
+    }
+    cp <- data.frame(pairs, cors) #form dataframe
+    colnames(cp) <-c('Variable Pairs', 'Pearson Exceeds Threshold') #change column names
+    x[[length(x)+1]] <- cp #add to list
+    return(x)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```

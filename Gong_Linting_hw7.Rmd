@@ -1,0 +1,110 @@
+---
+title: "Gong_Linting_hw7"
+author: "Linting Gong"
+date: "Thursday, October 27, 2016"
+output: html_document
+---
+
+
+```{r}
+
+#we use the class function 
+# define function: explore 
+# Input: dataframe,
+#        plotswitch, off, on, or grid
+#        threshold,
+# Output:
+explore <- function(dataframe, plotswitch, threshold){
+  r1 <- freq(dataframe)
+  r2a <- sum(dataframe)
+  r2b <- rSquare(dataframe)
+  r2c <- pearCoefs(dataframe,threshold)
+  
+  results <- list(r1,r2a,r2b,r2c)
+  return (results)
+}
+
+
+ #The freq function finds out all the factor class column and prints a frequency table for each factor 
+#column
+# Input: dataframe 
+# Output: a frequency table.
+freq <- function(dataframe){
+  catData <- dataframe[sapply(dataframe,is.factor)]
+  result <- c()
+  l <- ncol(catData)
+  for (i in 1:l){
+    result <- c(result,table(catData[i]))
+  }
+  return(result)
+}
+
+
+# function: sum function retunrs the sum of the each numerical columns 
+# Input: numVar, a vector of numerical variable
+# Output: a summary statistics table for the variable
+sum <- function(dataframe){
+  numericData <- dataframe[sapply(dataframe,is.numeric)]
+  result <- c()
+  l <- ncol(numericData)
+  for (i in 1:l){
+    result <- c(result,summary(numericData[i]))
+  }
+  return(result)
+}
+
+
+# function: rSquare
+# Input: var1=the first numerical variable name
+#        var2=the second numerical variable name
+#        dataframe, the data that we are using
+# Output: a numberthat is the r-square value 
+rSquare <- function(col1,col2,dataframe){
+  temp <- lm(dataframe[[col1]] ~ dataframe[[col2]])
+  return(summary(temp)$r.square)
+}
+
+rSquares <- function(dataframe){
+  nData <- dataframe[sapply(dataframe,is.numeric)] # select the numeric cols and store 
+  nNames <- colnames(nData)# extract the numeric col names
+  pairNames <- c() # create a new vector to store the names later
+  pairRSquares <- c() # create a new vector to store the R squares later
+  l <- ncol(nData) # store the number of cols
+  for (i in 1:(l-1)){ # looking at each numeric col
+    for (j in (i+1):l){ 
+      pairNames <- c(pairNames,paste(nNames[i],nNames[j],sep='-')) # create the name of the pair and store it
+      pairRSquares <- c(pairRSquares,rSquare(i,j,dataframe)) 
+    }
+  }
+  result <- data.frame(pairNames,pairRSquares)
+  colnames(result) <- c("Variable Pairs","R-Square")
+  return (result) 
+  # return the new dataset 
+}
+
+pearCoefs <- function(dataframe,threshold){
+  nData <- dataframe[sapply(dataframe,is.numeric)] # select the numeric cols and store into a new frame
+  nNames <- colnames(nData)# extract the numeric col names
+  pairNames <- c() # create a null vector to store the names later
+  pairCoeffs <- c() # create a null vector to store the coeffs later
+  l <- ncol(nData) # store the number of cols, to be used in the for loop
+  for (i in 1:(l-1)){ # looking at each numeric col
+    for (j in (i+1):l){# compare each numeric col with each numeric col after it (no repetation)
+      corcoef <- cor(nData[i],nData[j],method="pearson")
+      if (abs(corcoef)>threshold){ # check if the absolute value of the calculated correlation is greater than the threshold
+        pairNames <- c(pairNames,paste(nNames[i],nNames[j],sep='-')) # create the name of the pair and store it
+        pairCoeffs <- c(pairCoeffs,corcoef) # store the correlation coefficient
+      }
+    }
+  }
+  result <- data.frame(pairNames,pairCoeffs)
+  colnames(result) <- c("Variable Pairs","Pearson Exceeds Threshold")
+  return (result) # return the new data
+
+
+} 
+
+
+
+```
+
