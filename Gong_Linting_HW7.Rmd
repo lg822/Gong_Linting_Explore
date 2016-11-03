@@ -1,0 +1,124 @@
+---
+title: "Linting Gong_hw7"
+author: "Linting Gong"
+date: "2016/11/3"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+```{r }
+library(ggplot2)
+library(grid)
+
+explore <- function(data, plotswitch = "off", threshold = 0, vector = NULL) {
+  #Function explore is a main function given all subfunctions result
+  #we need to run subfunctions first before run this main function
+  
+  #inpurt:(four Parameters)
+  #data: a dataframe
+  #plotswitch: a plot switch that can accept three values 
+  #threshold: A threshold cut of value between 0 and 1 for correlations
+  #vector: bin numbers of histograms. (use the default bin size if vector is not provided)
+  
+  #Output&Returns:
+  
+  Freq_table <- freq_table (data) #frequency table
+  
+  Summary_num <- summary_num (data) #statistics table
+  
+  R_squared <- r_squared (data) #r-sqaured values
+  
+  Pearson_coe <- pearson_coe (data, threshold) #pearson correlation coefficient
+  
+  plot_density_count(data,plotswitch,vector) #plot density and count histograms
+  
+  plot_gray (data, plotswitch) #plot gray bar
+  
+  new_result=list(Freq_table, Summary_num, R_squared, Pearson_coe) #new list try to combine all data result 
+  
+  return (new_result)
+  
+}
+
+
+
+
+#1
+freq_table <- function(data){
+# funcion: freqTable 
+# This fucntion takes in a dataframe and returns a frequency table
+# for every categorical and logical variable.
+# Input: dataframe, the data that we are using
+# Output: a frequency table.
+  data_cat <- c(data[sapply(data,is.factor)],data[sapply(data,is.logical)])
+    #select categorical and logical variable
+  return (sapply(data_cat,table)) #return a table
+}
+
+##2
+#a)
+summary_num <- function(data){
+# function: sumTable
+# This fucntion takes in a dataframe and returns a summary statistics table for each numerical variable.
+# Input: dataframe, the data that we are using
+# Output: a summary statistics table for each numeric variable in the dataframe.
+  data_num=data[sapply(data,is.numeric)] #select which column is numeric 
+  return (summary(data_num)) #return summary statistics
+}
+
+#b).
+# function: rSqaure
+# This fucntion fits a model on two variables in a dataframe and returns the r square value.
+# Input: a data frame that contains each pair of column names in
+#the first column (name the column "Variable Pairs") and 
+#the associated r-square value in the second column (name the
+#column "R-Square").
+# Input:  dataframe, the data that we are using
+# Output:a new dataframe that contains each pair of column names and corresponding r-square value
+
+r_squared <- function(data) {
+  data_num <- data[sapply(data, is.numeric)] # Select the numeric data
+  colname <- colnames(data_num) # extract column names
+  pairwise_rsquared <- c()  # create a null vector to store the R squares later
+  pairwise_names <- c() # # create a null vector to store the names later
+  for (i in 1:(length(colname)-1)) {
+    for (j in (i+1):length(colname)) { #two column names
+      num_rsqaured <- summary(lm(data_num[,i]~data_num[,j]))$r.squared
+        # get r-squared data using linear model r.squared
+      pairwise_names <- c(pairwise_names, paste(colname[i], colname[j], sep="-"))
+        # add pairnames to pairwise_names
+      pairwise_rsquared <- c(pairwise_rsquared, num_rsqaured)
+        # add r-squared data to pairwise_r_squared
+    }
+  }
+  data_rsquared <- data.frame(pairwise_names, pairwise_rsquared)
+  colnames(data_rsquared) <- c("Variable Pairs", "R-squared")
+  return (data_rsquared) # return the newly generated data as a data.frame
+}  
+
+#c).
+# function: pearCoefs
+# This fucntion takes in a dataframe, a threshold and returns a data frame
+# that contains each pair of column names in the first column (the column name is "Variable Pairs") and correlation coefficient (Pearson) for all coefficientsnwhose absolute value is greater than the correlation threshold in the second column
+# Input: dataframe, the data that we are using
+# threshold, a number which is the threshold
+# Output: a data frame as described above
+pearson_coe <- function(data, threshold = 0) {
+  data_num <- data[sapply(data, is.numeric)] # select numeric data
+  comb_names <- combn(colnames(data_num), 2) # combinations of all names
+  pairwise_names <- paste(comb_names[1,], comb_names[2, ], sep = "-") 
+    # add "-" in names e.g. x-y
+  temp <- cor(data_num, method = "pearson")
+    # derive pearson correlation coefficient data using cor function
+  cor_data <- temp[which(lower.tri(temp))]  
+    # use data in lower triangular of matrix to aviod double-use same data
+  dfm_new <- data.frame(pairwise_names, cor_data)
+    # create a new dataframe data_coe
+  dfm_new <- subset(dfm_new, abs(cor_data) > threshold)
+    # select absolute value of correlation greater than threshold
+  colnames(dfm_new) <- c("Variable Pairs", "Pearson Exceeds Threshold")
+  return(dfm_new)
+}
+```
+
+
