@@ -5,6 +5,8 @@ date: "2016/11/3"
 output: html_document
 ---
 
+##Comments: It is always good to include one test case to show how your code works. After the study of your code, there is one function "plot_density_count" is not included, have you include the corresponding package? If yes, you need study the functiona and the structure of your function.
+
 ```{r setup, include=FALSE}
 ```{r }
 library(ggplot2)
